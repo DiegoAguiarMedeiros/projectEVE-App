@@ -102,3 +102,22 @@ dist
 
 # TernJS port file
 .tern-port
+node_modules/
+.expo/
+android
+ios
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# macOS
+.DS_Store
+
+# Temporary files created by Metro to check the health of the file watcher
+.metro-health-check*

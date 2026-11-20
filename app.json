@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Project EVE",
+    "slug": "projecteve-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "projecteve",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.damsoftware.projecteve"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1877F2"
+      },
+      "package": "com.damsoftware.projecteve"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
