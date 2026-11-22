@@ -7,10 +7,12 @@
     "start": "expo start",
     "android": "expo run:android",
     "android:device": "expo run:android --device",
+    "apk": "eas build -p android --profile preview",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "jest"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -38,7 +40,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.10",
+    "jest": "^30.5.2",
+    "react-test-renderer": "^19.1.0",
     "typescript": "~5.8.3"
   }
 }

@@ -26,26 +26,25 @@ import { Month, ProcessedIncomesMonthResponse } from 'src/types';
 import { MonthYearPickerHeader } from 'src/components/MonthYearPickerHeader';
 import { useToast } from 'src/components/Toast';
 
-// Screens
+// Screens (Feature Modules)
 import {
   ForgotPasswordScreen,
   RegistrationScreen,
   ResetPasswordScreen,
   SignInScreen,
   VerifyEmailScreen,
-} from 'src/screens/auth/AuthScreens';
+} from 'src/features/auth/screens/AuthScreens';
 import {
   CompleteRegistrationScreen,
   SettingsScreen,
-} from 'src/screens/SettingsAndOnboarding';
-import { DashboardScreen } from 'src/screens/DashboardScreen';
-import {
-  EnvelopesScreen,
-  ProcessedIncomesScreen,
-  ReallocationScreen,
-} from 'src/screens/EnvelopesAndIncomesScreens';
-import { DebtsScreen, GoalsScreen } from 'src/screens/GoalsAndDebtsScreens';
-import { ProfileScreen } from 'src/screens/ProfileScreen';
+} from 'src/features/settings/screens/SettingsAndOnboarding';
+import { DashboardScreen } from 'src/features/budget/screens/DashboardScreen';
+import { EnvelopesScreen } from 'src/features/envelopes/screens/EnvelopesScreen';
+import { ReallocationScreen } from 'src/features/envelopes/screens/ReallocationScreen';
+import { ProcessedIncomesScreen } from 'src/features/incomes/screens/ProcessedIncomesScreen';
+import { GoalsScreen } from 'src/features/goals/screens/GoalsScreen';
+import { DebtsScreen } from 'src/features/debts/screens/DebtsScreen';
+import { ProfileScreen } from 'src/features/profile/screens/ProfileScreen';
 
 const AuthStack = createNativeStackNavigator();
 const AppStack = createNativeStackNavigator();

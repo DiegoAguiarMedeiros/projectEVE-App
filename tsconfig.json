@@ -4,7 +4,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "src/*": ["src/*"]
+      "src/*": ["src/*"],
+      "@testing-library/react-native": ["src/test/test-utils"]
     }
   },
   "include": [

@@ -5,7 +5,7 @@ export const AUTH_TOKEN_KEY = 'eve-access-token';
 export const REFRESH_TOKEN_KEY = 'eve-refresh-token';
 
 const DEFAULT_API_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'http://192.168.15.7:3000/api';
+  process.env.EXPO_PUBLIC_API_URL || 'https://projecteve-backend.onrender.com/api';
 
 let inMemoryAccessToken: string | null = null;
 let inMemoryRefreshToken: string | null = null;
