@@ -59,10 +59,20 @@ export function fShortenNumber(inputValue: InputNumberValue): string {
   return number.toFixed(0);
 }
 
+export function parseLocalDate(date: string | Date): dayjs.Dayjs {
+  if (typeof date === 'string') {
+    const match = date.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (match) {
+      return dayjs(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+    }
+  }
+  return dayjs(date);
+}
+
 export function fDate(date: string | Date | null | undefined): string {
   if (!date) return '';
   const { dateFormat } = usePreferencesStore.getState();
-  const d = dayjs(date);
+  const d = parseLocalDate(date);
   if (!d.isValid()) return String(date);
   return d.format(dateFormat);
 }
@@ -134,8 +144,10 @@ export function getInstallmentDate(
   paymentDay: number
 ): string {
   const now = new Date();
-  const date = new Date(now.getFullYear(), now.getMonth() - realPaidInstallments + index, paymentDay);
-  const dd = String(date.getDate()).padStart(2, '0');
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  return `${dd}/${mm}/${date.getFullYear()}`;
+  const targetYear = now.getFullYear();
+  const targetMonth = now.getMonth() - realPaidInstallments + index;
+  const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const clampedDay = Math.min(Math.max(1, paymentDay), lastDayOfTargetMonth);
+  const date = new Date(targetYear, targetMonth, clampedDay);
+  return fDate(date);
 }

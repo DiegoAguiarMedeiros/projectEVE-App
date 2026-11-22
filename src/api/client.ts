@@ -4,11 +4,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const AUTH_TOKEN_KEY = 'eve-access-token';
 export const REFRESH_TOKEN_KEY = 'eve-refresh-token';
 
-const DEFAULT_API_URL =
+export const DEFAULT_API_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://projecteve-backend.onrender.com/api';
 
 let inMemoryAccessToken: string | null = null;
 let inMemoryRefreshToken: string | null = null;
+let unauthorizedCallback: (() => void) | null = null;
+
+export function getAccessToken(): string | null {
+  return inMemoryAccessToken;
+}
+
+export function getSocketBaseUrl(): string {
+  return DEFAULT_API_URL.replace(/\/api\/?$/, '');
+}
+
+export function setOnUnauthorizedCallback(cb: (() => void) | null): void {
+  unauthorizedCallback = cb;
+}
 
 export async function initAuthTokens(): Promise<void> {
   try {
@@ -60,3 +73,28 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/verify-email',
+  '/auth/logout',
+];
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error?.response?.status;
+    const url: string = error?.config?.url || '';
+    const isPublicAuth = PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+
+    if (status === 401 && !isPublicAuth) {
+      await clearAuthTokens();
+      unauthorizedCallback?.();
+    }
+
+    return Promise.reject(error);
+  }
+);

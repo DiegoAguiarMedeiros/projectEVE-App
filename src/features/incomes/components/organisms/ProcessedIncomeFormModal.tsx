@@ -45,6 +45,7 @@ export const ProcessedIncomeFormModal: React.FC<
   const [envelopeId, setEnvelopeId] = useState('');
   const [errDesc, setErrDesc] = useState<string | null>(null);
   const [errAmount, setErrAmount] = useState<string | null>(null);
+  const [errDay, setErrDay] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -62,26 +63,46 @@ export const ProcessedIncomeFormModal: React.FC<
         setDayOnly(String(dayjs().date()));
       }
       setIsSplitted(data ? !!data.isSplitted : true);
-      setEnvelopeId(data?.envelopeId ?? envelopes[0]?.id ?? '');
+      setEnvelopeId(data?.envelopeId ?? '');
       setErrDesc(null);
       setErrAmount(null);
+      setErrDay(null);
     }
-  }, [visible, data, envelopes]);
+  }, [visible, data]);
+
+  useEffect(() => {
+    if (visible && !envelopeId && envelopes.length > 0) {
+      setEnvelopeId(envelopes[0].id);
+    }
+  }, [visible, envelopeId, envelopes]);
 
   const handleSubmit = async () => {
     if (!description.trim()) {
       setErrDesc(t('income.validation.description_required'));
       return;
     }
+    setErrDesc(null);
+
     if (
       !totalIncomeProcessed.trim() ||
-      Number.isNaN(Number(totalIncomeProcessed))
+      Number.isNaN(Number(totalIncomeProcessed)) ||
+      Number(totalIncomeProcessed) <= 0
     ) {
       setErrAmount(t('income.validation.amount_required'));
       return;
     }
+    setErrAmount(null);
 
-    const day = isDayOnly ? dayOnly || '1' : String(selectedDate.getDate());
+    if (isDayOnly) {
+      const parsedDay = Number(dayOnly);
+      if (!dayOnly.trim() || Number.isNaN(parsedDay) || parsedDay < 1 || parsedDay > 31) {
+        setErrDay(t('settings.income.validation.payment_day_range'));
+        return;
+      }
+      setErrDay(null);
+    }
+
+    const day = isDayOnly ? String(Number(dayOnly)) : String(selectedDate.getDate());
     const month = isDayOnly
       ? String(fixedMonth)
       : String(selectedDate.getMonth() + 1);
@@ -99,12 +120,16 @@ export const ProcessedIncomeFormModal: React.FC<
       envelopeId: !isSplitted && !isDayOnly ? envelopeId : undefined,
     };
 
-    if (data) {
-      await updateMutation.mutateAsync({ id: data.id, ...payload });
-    } else {
-      await createMutation.mutateAsync(payload);
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({ id: data.id, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -118,8 +143,12 @@ export const ProcessedIncomeFormModal: React.FC<
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }
@@ -147,6 +176,7 @@ export const ProcessedIncomeFormModal: React.FC<
           value={dayOnly}
           onChangeText={setDayOnly}
           keyboardType="numeric"
+          error={errDay}
         />
       ) : (
         <>

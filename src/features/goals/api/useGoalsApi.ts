@@ -16,15 +16,13 @@ export function useListGoals() {
   });
 }
 
-export function useHasGoals(year: number, month: number) {
-  const { data: envelopesWithAmount, isLoading: l1 } = useListEnvelopesWithAmount(year, month);
-  const { data: baseEnvelopes, isLoading: l2 } = useListEnvelopes();
-  const envelopes = envelopesWithAmount?.length ? envelopesWithAmount : baseEnvelopes;
-  const goalsEnvelope = envelopes?.find((e) => e.name === 'goals');
+export function useHasGoals(_year?: number, _month?: number) {
+  const { data: baseEnvelopes, isLoading } = useListEnvelopes();
+  const goalsEnvelope = baseEnvelopes?.find((e) => e.name === 'goals');
   return {
     hasGoals: (goalsEnvelope?.percentage ?? 0) > 0,
     goalsEnvelope,
-    isLoading: l1 || l2,
+    isLoading,
   };
 }
 
@@ -65,6 +63,10 @@ export function useCreateGoals() {
       showToast(t('notifications.goals.created'), 'success');
       queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -78,6 +80,10 @@ export function useUpdateGoals() {
       showToast(t('notifications.goals.updated'), 'success');
       queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -90,6 +96,10 @@ export function useDeleteGoals() {
     onSuccess: () => {
       showToast(t('notifications.goals.deleted'), 'success');
       queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }

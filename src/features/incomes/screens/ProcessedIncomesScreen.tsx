@@ -85,7 +85,11 @@ export const ProcessedIncomesScreen: React.FC = () => {
                     <Text
                       style={{ fontSize: 12, color: colors.text.secondary }}
                     >
-                      {fDate(`${item.year}-${item.month}-${item.day}`)}
+                      {fDate(
+                        `${item.year}-${String(item.month).padStart(2, '0')}-${String(
+                          item.day
+                        ).padStart(2, '0')}`
+                      )}
                     </Text>
                     <View
                       style={[

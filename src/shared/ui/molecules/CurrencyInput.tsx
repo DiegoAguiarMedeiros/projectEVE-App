@@ -33,7 +33,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
     if (value === '' || value === null || value === undefined) return '';
     const num = Number(value);
     if (Number.isNaN(num)) return '';
-    const cents = Math.round(num * 100);
+    const cents = Math.round(Math.abs(num) * 100);
     const str = String(cents).padStart(3, '0');
     const intPart = str.slice(0, -2);
     const decPart = str.slice(-2);
@@ -48,12 +48,12 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
   }, [value, numberFormat, currencyCode]);
 
   const handleChangeText = (text: string) => {
-    const digits = text.replace(/\D/g, '');
+    const digits = text.replace(/\D/g, '').slice(0, 12);
     if (!digits) {
       onChange('');
       return;
     }
-    const cents = parseInt(digits, 10);
+    const cents = Math.abs(parseInt(digits, 10));
     const decimalString = (cents / 100).toFixed(2);
     onChange(decimalString);
   };

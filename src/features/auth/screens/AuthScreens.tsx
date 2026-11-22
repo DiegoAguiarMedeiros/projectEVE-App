@@ -490,6 +490,8 @@ export const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({ navigation
   );
 };
 
+const TOKEN_FORMAT_REGEX = /^[A-Za-z0-9._-]{8,512}$/;
+
 // ─── 4. Reset Password Screen ─────────────────────────────────────────────────
 
 export const ResetPasswordScreen: React.FC<{ navigation: any; route: any }> = ({
@@ -499,7 +501,12 @@ export const ResetPasswordScreen: React.FC<{ navigation: any; route: any }> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
 
-  const [token, setToken] = useState<string>(route?.params?.token || '');
+  const initialToken =
+    typeof route?.params?.token === 'string' &&
+    TOKEN_FORMAT_REGEX.test(route.params.token.trim())
+      ? route.params.token.trim()
+      : '';
+  const [token, setToken] = useState<string>(initialToken);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -512,6 +519,7 @@ export const ResetPasswordScreen: React.FC<{ navigation: any; route: any }> = ({
   const apiError = (error as any)?.response?.data?.message || null;
   const pwdTooShort = !!newPassword && newPassword.length < 8;
   const pwdMismatch = !!confirmPassword && confirmPassword !== newPassword;
+  const tokenValid = TOKEN_FORMAT_REGEX.test(token.trim());
 
   return (
     <KeyboardAvoidingContainer
@@ -570,7 +578,7 @@ export const ResetPasswordScreen: React.FC<{ navigation: any; route: any }> = ({
                 </Text>
               )}
 
-              {!route?.params?.token && (
+              {!initialToken && (
                 <FormInput
                   label="Token"
                   value={token}
@@ -613,7 +621,7 @@ export const ResetPasswordScreen: React.FC<{ navigation: any; route: any }> = ({
                 onPress={() => resetPwd({ token: token.trim(), newPassword })}
                 loading={isPending}
                 disabled={
-                  !token.trim() ||
+                  !tokenValid ||
                   !newPassword ||
                   !confirmPassword ||
                   pwdTooShort ||
@@ -644,11 +652,16 @@ export const VerifyEmailScreen: React.FC<{ navigation: any; route: any }> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
 
-  const [manualToken, setManualToken] = useState<string>(route?.params?.token || '');
-  const [activeToken, setActiveToken] = useState<string | null>(
-    route?.params?.token || null
-  );
+  const initialToken =
+    typeof route?.params?.token === 'string' &&
+    TOKEN_FORMAT_REGEX.test(route.params.token.trim())
+      ? route.params.token.trim()
+      : null;
+
+  const [manualToken, setManualToken] = useState<string>(initialToken || '');
+  const [activeToken, setActiveToken] = useState<string | null>(initialToken);
   const isPendingParam = route?.params?.pending === true;
+  const isManualTokenValid = TOKEN_FORMAT_REGEX.test(manualToken.trim());
 
   const { isLoading, isSuccess, error } = useVerifyEmail(activeToken);
   const errorKey =
@@ -750,7 +763,7 @@ export const VerifyEmailScreen: React.FC<{ navigation: any; route: any }> = ({
                 placeholder="Cole o token de verificação se desejar"
                 autoCapitalize="none"
               />
-              {manualToken.trim() ? (
+              {isManualTokenValid ? (
                 <AppButton
                   title="Verificar Token"
                   onPress={() => setActiveToken(manualToken.trim())}

@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useToast } from 'src/components/Toast';
 import * as apiService from 'src/api/services';
+import { useIncomeStore } from 'src/store/useIncomeStore';
+import { useSelectedMonthYearStore } from 'src/store/useSelectedMonthYearStore';
 
 export function useUser() {
   return useQuery({
@@ -51,8 +53,11 @@ export function useDeleteAccount(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => apiService.deleteAccount(),
-    onSuccess: () => {
+    onSettled: () => {
+      queryClient.setQueryData(['user'], null);
       queryClient.clear();
+      useIncomeStore.getState().setIncome(0);
+      useSelectedMonthYearStore.getState().reset();
       onSuccess?.();
     },
   });

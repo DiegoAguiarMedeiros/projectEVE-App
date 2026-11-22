@@ -88,6 +88,15 @@ export function useUpdateTransactions() {
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-current-envelopes'] });
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-envelopes-month-overview'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message;
+      showToast(
+        msg === 'transaction.errors.exceeds_envelope_budget'
+          ? t('errors.transactions.exceeds_budget')
+          : t(msg || 'errors.unexpected'),
+        'error'
+      );
+    },
   });
 }
 
@@ -107,6 +116,10 @@ export function useUpdateStatusTransactions() {
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-current-envelopes'] });
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-envelopes-month-overview'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -123,6 +136,10 @@ export function useDeleteTransactions() {
       queryClient.invalidateQueries({ queryKey: ['upcoming-pending'] });
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-current-envelopes'] });
       queryClient.invalidateQueries({ queryKey: ['graph-analytics-envelopes-month-overview'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }

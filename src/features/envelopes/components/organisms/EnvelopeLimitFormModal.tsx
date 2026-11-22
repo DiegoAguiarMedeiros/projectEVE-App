@@ -59,13 +59,14 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
     if (visible && data) {
       setColor(data.color || '#1877F2');
       setPercentage(data.percentage || 0);
-      if (income > 0) {
-        setValueInput(((data.percentage / 100) * income).toFixed(2));
+      const currentIncome = useIncomeStore.getState().income;
+      if (currentIncome > 0) {
+        setValueInput((((data.percentage || 0) / 100) * currentIncome).toFixed(2));
       } else {
         setValueInput('');
       }
     }
-  }, [visible, data, income]);
+  }, [visible, data]);
 
   const handleSliderChange = (val: number) => {
     const rounded = Number(val.toFixed(2));
@@ -93,13 +94,17 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
 
   const handleSubmit = async () => {
     if (!data || isValueAboveMax) return;
-    await updateMutation.mutateAsync({
-      id: data.id,
-      name: data.name,
-      color,
-      percentage,
-    });
-    onClose();
+    try {
+      await updateMutation.mutateAsync({
+        id: data.id,
+        name: data.name,
+        color,
+        percentage,
+      });
+      onClose();
+    } catch {
+      // handled by mutation onError toast
+    }
   };
 
   const belowMinimum =

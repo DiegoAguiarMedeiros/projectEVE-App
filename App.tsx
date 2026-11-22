@@ -7,8 +7,10 @@ import { loadSavedLanguage } from 'src/locales/i18n';
 import { ThemeProvider, useAppTheme } from 'src/theme';
 import { ToastProvider } from 'src/components/Toast';
 import { RootNavigator } from 'src/navigation/RootNavigator';
-import { initAuthTokens } from 'src/api/client';
+import { initAuthTokens, setOnUnauthorizedCallback } from 'src/api/client';
 import { usePreferencesStore } from 'src/store/usePreferencesStore';
+import { useIncomeStore } from 'src/store/useIncomeStore';
+import { useSelectedMonthYearStore } from 'src/store/useSelectedMonthYearStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,6 +19,13 @@ const queryClient = new QueryClient({
       retry: 1,
     },
   },
+});
+
+setOnUnauthorizedCallback(() => {
+  queryClient.setQueryData(['user'], null);
+  queryClient.clear();
+  useIncomeStore.getState().setIncome(0);
+  useSelectedMonthYearStore.getState().reset();
 });
 
 const AppShell: React.FC = () => {

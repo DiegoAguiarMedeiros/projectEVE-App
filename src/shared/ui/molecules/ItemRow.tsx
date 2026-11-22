@@ -103,7 +103,7 @@ export const ItemRow: React.FC<ItemRowProps> = ({
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
       )}
 
-      {hasMenu && (
+      {hasMenu && sheetOpen && (
         <Modal
           visible={sheetOpen}
           transparent

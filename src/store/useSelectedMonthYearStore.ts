@@ -14,6 +14,7 @@ type SelectedMonthYearState = {
   setNextMonthToProcess: (month: Month) => void;
   setNextYearToProcess: (year: number) => void;
   setLastSlideIndex: (index: number) => void;
+  reset: () => void;
 };
 
 const now = new Date();
@@ -31,4 +32,15 @@ export const useSelectedMonthYearStore = create<SelectedMonthYearState>((set) =>
   setNextMonthToProcess: (nextMonthToProcess) => set({ nextMonthToProcess }),
   setNextYearToProcess: (nextYearToProcess) => set({ nextYearToProcess }),
   setLastSlideIndex: (lastSlideIndex) => set({ lastSlideIndex }),
+  reset: () => {
+    const current = new Date();
+    set({
+      month: (current.getMonth() + 1) as Month,
+      year: current.getFullYear(),
+      hasMonthProcessed: false,
+      nextMonthToProcess: (current.getMonth() + 1) as Month,
+      nextYearToProcess: current.getFullYear(),
+      lastSlideIndex: 0,
+    });
+  },
 }));

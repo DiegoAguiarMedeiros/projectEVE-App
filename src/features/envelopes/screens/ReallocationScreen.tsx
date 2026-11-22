@@ -34,12 +34,20 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const sourceEnvelope = envelopes[sourceIndex] || envelopes[0];
+  const safeSourceIndex =
+    envelopes.length > 0
+      ? Math.min(Math.max(0, sourceIndex), envelopes.length - 1)
+      : 0;
+  const sourceEnvelope = envelopes[safeSourceIndex] || envelopes[0];
   const destinationEnvelopes = envelopes.filter(
     (e) => e.id !== sourceEnvelope?.id
   );
+  const safeDestIndex =
+    destinationEnvelopes.length > 0
+      ? Math.min(Math.max(0, destIndex), destinationEnvelopes.length - 1)
+      : 0;
   const destinationEnvelope =
-    destinationEnvelopes[destIndex] || destinationEnvelopes[0];
+    destinationEnvelopes[safeDestIndex] || destinationEnvelopes[0];
 
   const numAmount = Number(amount || 0);
   const insufficientFunds =
@@ -104,11 +112,14 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
         </Text>
         <View style={styles.selectorRow}>
           <TouchableOpacity
-            onPress={() =>
-              setSourceIndex((prev: number) =>
-                prev === 0 ? envelopes.length - 1 : prev - 1
-              )
-            }
+            disabled={envelopes.length <= 1}
+            onPress={() => {
+              if (envelopes.length <= 1) return;
+              setSourceIndex((prev: number) => {
+                const current = Math.min(Math.max(0, prev), envelopes.length - 1);
+                return current === 0 ? envelopes.length - 1 : current - 1;
+              });
+            }}
             style={styles.arrowCircle}
           >
             <MaterialIcons
@@ -127,11 +138,14 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
             )}
           </View>
           <TouchableOpacity
-            onPress={() =>
-              setSourceIndex((prev: number) =>
-                prev === envelopes.length - 1 ? 0 : prev + 1
-              )
-            }
+            disabled={envelopes.length <= 1}
+            onPress={() => {
+              if (envelopes.length <= 1) return;
+              setSourceIndex((prev: number) => {
+                const current = Math.min(Math.max(0, prev), envelopes.length - 1);
+                return current === envelopes.length - 1 ? 0 : current + 1;
+              });
+            }}
             style={styles.arrowCircle}
           >
             <MaterialIcons
@@ -154,11 +168,17 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
         </Text>
         <View style={[styles.selectorRow, { marginBottom: 20 }]}>
           <TouchableOpacity
-            onPress={() =>
-              setDestIndex((prev) =>
-                prev === 0 ? destinationEnvelopes.length - 1 : prev - 1
-              )
-            }
+            disabled={destinationEnvelopes.length <= 1}
+            onPress={() => {
+              if (destinationEnvelopes.length <= 1) return;
+              setDestIndex((prev) => {
+                const current = Math.min(
+                  Math.max(0, prev),
+                  destinationEnvelopes.length - 1
+                );
+                return current === 0 ? destinationEnvelopes.length - 1 : current - 1;
+              });
+            }}
             style={styles.arrowCircle}
           >
             <MaterialIcons
@@ -177,11 +197,17 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
             )}
           </View>
           <TouchableOpacity
-            onPress={() =>
-              setDestIndex((prev) =>
-                prev === destinationEnvelopes.length - 1 ? 0 : prev + 1
-              )
-            }
+            disabled={destinationEnvelopes.length <= 1}
+            onPress={() => {
+              if (destinationEnvelopes.length <= 1) return;
+              setDestIndex((prev) => {
+                const current = Math.min(
+                  Math.max(0, prev),
+                  destinationEnvelopes.length - 1
+                );
+                return current === destinationEnvelopes.length - 1 ? 0 : current + 1;
+              });
+            }}
             style={styles.arrowCircle}
           >
             <MaterialIcons

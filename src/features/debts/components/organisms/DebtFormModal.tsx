@@ -35,6 +35,8 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
   const [paymentDay, setPaymentDay] = useState('');
   const [errDesc, setErrDesc] = useState<string | null>(null);
   const [errAmount, setErrAmount] = useState<string | null>(null);
+  const [errPaid, setErrPaid] = useState<string | null>(null);
+  const [errTotal, setErrTotal] = useState<string | null>(null);
   const [errDay, setErrDay] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,6 +56,8 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
       setPaymentDay(data?.paymentDay ? String(data.paymentDay) : '');
       setErrDesc(null);
       setErrAmount(null);
+      setErrPaid(null);
+      setErrTotal(null);
       setErrDay(null);
     }
   }, [visible, data]);
@@ -63,32 +67,65 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
       setErrDesc(t('settings.debt.validation.description_required'));
       return;
     }
-    if (!amount.trim() || Number.isNaN(Number(amount))) {
+    setErrDesc(null);
+
+    if (!amount.trim() || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
       setErrAmount(t('settings.debt.validation.amount_required'));
       return;
     }
+    setErrAmount(null);
+
+    const totalNum = Number(installmentsTotal || '1');
+    if (
+      !installmentsTotal.trim() ||
+      Number.isNaN(totalNum) ||
+      !Number.isInteger(totalNum) ||
+      totalNum < 1
+    ) {
+      setErrTotal(t('settings.debt.validation.installments_total_invalid'));
+      return;
+    }
+    setErrTotal(null);
+
+    const paidNum = Number(installmentsPaid || '0');
+    if (
+      Number.isNaN(paidNum) ||
+      !Number.isInteger(paidNum) ||
+      paidNum < 0 ||
+      paidNum > totalNum
+    ) {
+      setErrPaid(t('settings.debt.validation.installments_paid_invalid'));
+      return;
+    }
+    setErrPaid(null);
+
     const d = Number(paymentDay);
     if (!paymentDay.trim() || Number.isNaN(d) || d < 1 || d > 31) {
       setErrDay(t('settings.debt.validation.payment_day_range'));
       return;
     }
+    setErrDay(null);
 
     const payload = {
       envelopeId: debtsEnvelopeId,
       description,
       amount,
-      installmentsPaid: installmentsPaid || '0',
-      installmentsTotal: installmentsTotal || '1',
+      installmentsPaid: String(paidNum),
+      installmentsTotal: String(totalNum),
       paymentDay,
       status: 'debt.status.pending' as const,
     };
 
-    if (data) {
-      await updateMutation.mutateAsync({ id: data.id, ...payload });
-    } else {
-      await createMutation.mutateAsync(payload);
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({ id: data.id, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -102,8 +139,12 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }
@@ -130,6 +171,7 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
         value={installmentsPaid}
         onChangeText={setInstallmentsPaid}
         keyboardType="numeric"
+        error={errPaid}
       />
       <FormInput
         testID="debt-installments-total-input"
@@ -137,6 +179,7 @@ export const DebtFormModal: React.FC<DebtFormModalProps> = ({
         value={installmentsTotal}
         onChangeText={setInstallmentsTotal}
         keyboardType="numeric"
+        error={errTotal}
       />
       <FormInput
         testID="debt-payment-day-input"

@@ -44,18 +44,23 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
       setErrName(t('settings.credit_card.validation.name_required'));
       return;
     }
-    if (data) {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        name,
-        flag,
-        active: data.active,
-        userId: data.userId,
-      });
-    } else {
-      await createMutation.mutateAsync({ name, flag });
+    setErrName(null);
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({
+          id: data.id,
+          name,
+          flag,
+          active: data.active,
+          userId: data.userId,
+        });
+      } else {
+        await createMutation.mutateAsync({ name, flag });
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -69,8 +74,12 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }

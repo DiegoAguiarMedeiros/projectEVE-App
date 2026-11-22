@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +42,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   const updateMutation = useUpdateTransactions();
   const deleteMutation = useDeleteTransactions();
   const { data: creditCardsData } = useListCreditCards();
-  const creditCards = creditCardsData?.data ?? [];
+  const creditCards = useMemo(() => creditCardsData?.data ?? [], [creditCardsData?.data]);
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -62,10 +62,17 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       setDescription(data?.description ?? '');
       setAmount(data?.amount ? String(data.amount) : '');
       if (data?.date) {
-        const d = dayjs(data.date);
-        setSelectedDate(
-          d.isValid() ? new Date(d.year(), d.month(), d.date()) : new Date()
-        );
+        const match = String(data.date).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (match) {
+          setSelectedDate(
+            new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+          );
+        } else {
+          const d = dayjs(data.date);
+          setSelectedDate(
+            d.isValid() ? new Date(d.year(), d.month(), d.date()) : new Date()
+          );
+        }
       } else {
         setSelectedDate(new Date());
       }
@@ -73,11 +80,17 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       setPaymentMethod(
         data?.paymentMethod ?? 'envelope.transaction.payment_method.DebitCard'
       );
-      setCreditCardId(data?.creditCardId ?? creditCards[0]?.id ?? '');
+      setCreditCardId(data?.creditCardId ?? '');
       setErrDesc(null);
       setErrAmount(null);
     }
-  }, [visible, data, creditCards]);
+  }, [visible, data]);
+
+  useEffect(() => {
+    if (visible && !creditCardId && creditCards.length > 0) {
+      setCreditCardId(creditCards[0].id);
+    }
+  }, [visible, creditCardId, creditCards]);
 
   const availableMethods = allPaymentMethod.filter((m) => {
     if (m === 'envelope.transaction.payment_method.Reallocation') return false;
@@ -95,46 +108,58 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       setErrDesc(t('envelope.validation.description_required'));
       return;
     }
-    if (!amount.trim() || Number.isNaN(Number(amount))) {
+    setErrDesc(null);
+
+    if (!amount.trim() || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
       setErrAmount(t('envelope.validation.amount_required'));
       return;
     }
+    setErrAmount(null);
 
     const isCredit =
       paymentMethod === 'envelope.transaction.payment_method.CreditCard';
     const isoDate = dayjs(selectedDate).format('YYYY-MM-DD');
 
-    if (data) {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        description,
-        amount,
-        status,
-        envelopeId,
-        paymentMethod,
-        creditCardId: isCredit ? creditCardId || undefined : undefined,
-        date: isoDate,
-        type: 'Debit',
-      });
-    } else {
-      await createMutation.mutateAsync({
-        description,
-        amount,
-        status: 'transaction.status.pending',
-        envelopeId,
-        paymentMethod,
-        creditCardId: isCredit ? creditCardId || undefined : undefined,
-        date: isoDate,
-        type: 'Debit',
-      });
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({
+          id: data.id,
+          description,
+          amount,
+          status,
+          envelopeId,
+          paymentMethod,
+          creditCardId: isCredit ? creditCardId || undefined : undefined,
+          date: isoDate,
+          type: data.type ?? 'Debit',
+          isTranslatable: data.isTranslatable,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          description,
+          amount,
+          status: 'transaction.status.pending',
+          envelopeId,
+          paymentMethod,
+          creditCardId: isCredit ? creditCardId || undefined : undefined,
+          date: isoDate,
+          type: 'Debit',
+        });
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   const handleDelete = async () => {
     if (!data) return;
-    await deleteMutation.mutateAsync(data.id);
-    onClose();
+    try {
+      await deleteMutation.mutateAsync(data.id);
+      onClose();
+    } catch {
+      // handled by mutation onError toast
+    }
   };
 
   const isCompleted = status === 'transaction.status.completed';

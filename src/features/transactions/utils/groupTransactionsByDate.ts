@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { Transactions } from 'src/types';
-import { fDate } from 'src/utils/format';
+import { fDate, parseLocalDate } from 'src/utils/format';
 
 export interface TransactionDateGroup {
   label: string;
@@ -17,11 +17,15 @@ export function groupTransactionsByDate(
   const yesterday = today.subtract(1, 'day').startOf('day');
 
   for (const tx of items) {
-    const key = tx.date ? dayjs(tx.date).format('YYYY-MM-DD') : 'no-date';
+    const parsedTxDate = tx.date ? parseLocalDate(tx.date) : null;
+    const key =
+      parsedTxDate && parsedTxDate.isValid()
+        ? parsedTxDate.format('YYYY-MM-DD')
+        : 'no-date';
     if (!groups.has(key)) {
-      const d = dayjs(key);
-      let label = fDate(key);
-      if (d.isValid()) {
+      const d = key !== 'no-date' ? parseLocalDate(key) : null;
+      let label = key !== 'no-date' ? fDate(key) : '';
+      if (d && d.isValid()) {
         if (d.isSame(today, 'day')) label = translate('common.today');
         else if (d.isSame(yesterday, 'day')) label = translate('common.yesterday');
       }

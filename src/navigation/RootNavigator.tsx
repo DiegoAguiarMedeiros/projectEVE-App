@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { LinkingOptions, NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Linking from 'expo-linking';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from 'src/theme';
@@ -25,6 +26,7 @@ import { useSelectedMonthYearStore } from 'src/store/useSelectedMonthYearStore';
 import { Month, ProcessedIncomesMonthResponse } from 'src/types';
 import { MonthYearPickerHeader } from 'src/components/MonthYearPickerHeader';
 import { useToast } from 'src/components/Toast';
+import { useRealtimeSync } from 'src/hooks/useRealtimeSync';
 
 // Screens (Feature Modules)
 import {
@@ -50,15 +52,60 @@ const AuthStack = createNativeStackNavigator();
 const AppStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const TOKEN_FORMAT_REGEX = /^[A-Za-z0-9._-]{8,512}$/;
+
+const parseSafeToken = (value?: string): string => {
+  if (!value || typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  return TOKEN_FORMAT_REGEX.test(trimmed) ? trimmed : '';
+};
+
+const linkingConfig: LinkingOptions<any> = {
+  prefixes: [Linking.createURL('/'), 'projecteve://'],
+  config: {
+    screens: {
+      SignIn: 'sign-in',
+      Registration: 'register',
+      ForgotPassword: 'forgot-password',
+      ResetPassword: {
+        path: 'reset-password',
+        parse: {
+          token: parseSafeToken,
+        },
+      },
+      VerifyEmail: {
+        path: 'verify-email',
+        parse: {
+          token: parseSafeToken,
+        },
+      },
+    },
+  },
+};
+
 function getLastProcessed(
   processed: ProcessedIncomesMonthResponse
-): { lastProcessedYear: number; lastProcessedMonth: Month } {
+): { lastProcessedYear: number; lastProcessedMonth: Month } | null {
   const years = Object.keys(processed)
     .map(Number)
+    .filter(
+      (y) =>
+        !Number.isNaN(y) &&
+        Array.isArray(processed[y]) &&
+        processed[y].length > 0
+    )
     .sort((a, b) => a - b);
+
+  if (years.length === 0) {
+    return null;
+  }
+
   const lastYear = years[years.length - 1];
   const months = [...processed[lastYear]].sort((a, b) => a - b);
   const lastMonth = months[months.length - 1];
+  if (!lastMonth) {
+    return null;
+  }
   return { lastProcessedYear: lastYear, lastProcessedMonth: lastMonth };
 }
 
@@ -131,7 +178,7 @@ const MainTabsNavigator: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { data: totalIncomes } = useTotalIncomes();
   const { data: processedIncomesMonths } = useProcessedIncomesMonth();
   const { hasDebts } = useHasDebts();
-  const { hasGoals } = useHasGoals(year, month);
+  const { hasGoals } = useHasGoals();
 
   useEffect(() => {
     if (totalIncomes?.total != null) {
@@ -141,16 +188,15 @@ const MainTabsNavigator: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   useEffect(() => {
     if (processedIncomesMonths !== undefined) {
-      const hasInfo = Object.keys(processedIncomesMonths).length > 0;
+      const lastProcessed = getLastProcessed(processedIncomesMonths);
       const isSelectedMonthProcessed =
-        hasInfo &&
-        (processedIncomesMonths[year]?.includes(month as Month) ?? false);
+        lastProcessed !== null &&
+        Array.isArray(processedIncomesMonths[year]) &&
+        processedIncomesMonths[year].includes(month as Month);
       setHasMonthProcessed(isSelectedMonthProcessed);
 
-      if (hasInfo) {
-        const { lastProcessedYear, lastProcessedMonth } = getLastProcessed(
-          processedIncomesMonths
-        );
+      if (lastProcessed) {
+        const { lastProcessedYear, lastProcessedMonth } = lastProcessed;
         if (lastProcessedMonth === 12) {
           setNextMonthToProcess(1);
           setNextYearToProcess(lastProcessedYear + 1);
@@ -172,6 +218,12 @@ const MainTabsNavigator: React.FC<{ navigation: any }> = ({ navigation }) => {
     setNextMonthToProcess,
     setNextYearToProcess,
   ]);
+
+  useEffect(() => {
+    if (!hasMonthProcessed && activeTabName === 'EnvelopesTab') {
+      navigation.navigate('MainTabs', { screen: 'BudgetTab' });
+    }
+  }, [hasMonthProcessed, activeTabName, navigation]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background.default }}>
@@ -304,6 +356,8 @@ export const RootNavigator: React.FC = () => {
   const { colors } = useAppTheme();
   const { data: user, isLoading, error } = useUser();
 
+  useRealtimeSync(user && !error ? user.id : undefined);
+
   if (isLoading) {
     return (
       <View
@@ -320,7 +374,7 @@ export const RootNavigator: React.FC = () => {
   const isAuthenticated = !!user && !error;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linkingConfig}>
       {!isAuthenticated ? (
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>
           <AuthStack.Screen name="SignIn" component={SignInScreen} />

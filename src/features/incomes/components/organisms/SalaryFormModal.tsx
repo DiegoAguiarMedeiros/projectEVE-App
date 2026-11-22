@@ -53,7 +53,7 @@ export const SalaryFormModal: React.FC<SalaryFormModalProps> = ({
       valid = false;
     } else setErrDesc(null);
 
-    if (!amount.trim() || Number.isNaN(Number(amount))) {
+    if (!amount.trim() || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
       setErrAmount(t('settings.income.validation.amount_required'));
       valid = false;
     } else setErrAmount(null);
@@ -66,21 +66,25 @@ export const SalaryFormModal: React.FC<SalaryFormModalProps> = ({
 
     if (!valid) return;
 
-    if (data) {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        description,
-        amount,
-        paymentDay,
-      });
-    } else {
-      await createMutation.mutateAsync({
-        description,
-        amount,
-        paymentDay,
-      });
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({
+          id: data.id,
+          description,
+          amount,
+          paymentDay,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          description,
+          amount,
+          paymentDay,
+        });
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -94,8 +98,12 @@ export const SalaryFormModal: React.FC<SalaryFormModalProps> = ({
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }

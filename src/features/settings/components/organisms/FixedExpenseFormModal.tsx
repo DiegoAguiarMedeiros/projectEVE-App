@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from 'src/theme';
@@ -29,8 +29,9 @@ export const FixedExpenseFormModal: React.FC<FixedExpenseFormModalProps> = ({
   const updateMutation = useUpdateFixedExpenses();
   const deleteMutation = useDeleteFixedExpenses();
 
-  const selectableEnvelopes = envelopes.filter(
-    (e) => e.name !== 'debts' && e.name !== 'goals'
+  const selectableEnvelopes = useMemo(
+    () => envelopes.filter((e) => e.name !== 'debts' && e.name !== 'goals'),
+    [envelopes]
   );
 
   const [envelopeId, setEnvelopeId] = useState('');
@@ -43,7 +44,7 @@ export const FixedExpenseFormModal: React.FC<FixedExpenseFormModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      setEnvelopeId(data?.envelopeId ?? selectableEnvelopes[0]?.id ?? '');
+      setEnvelopeId(data?.envelopeId ?? '');
       setDescription(data?.description ?? '');
       setAmount(data?.amount ? String(data.amount) : '');
       setPaymentDay(data?.paymentDay ? String(data.paymentDay) : '');
@@ -53,38 +54,56 @@ export const FixedExpenseFormModal: React.FC<FixedExpenseFormModalProps> = ({
     }
   }, [visible, data]);
 
+  useEffect(() => {
+    if (visible && !envelopeId && selectableEnvelopes.length > 0) {
+      setEnvelopeId(selectableEnvelopes[0].id);
+    }
+  }, [visible, envelopeId, selectableEnvelopes]);
+
   const handleSubmit = async () => {
+    if (!envelopeId) {
+      return;
+    }
     if (!description.trim()) {
       setErrDesc(t('settings.fixed_expense.validation.description_required'));
       return;
     }
-    if (!amount.trim() || Number.isNaN(Number(amount))) {
+    setErrDesc(null);
+
+    if (!amount.trim() || Number.isNaN(Number(amount)) || Number(amount) <= 0) {
       setErrAmount(t('settings.fixed_expense.validation.amount_required'));
       return;
     }
+    setErrAmount(null);
+
     const d = Number(paymentDay);
     if (!paymentDay.trim() || Number.isNaN(d) || d < 1 || d > 31) {
       setErrDay(t('settings.fixed_expense.validation.payment_day_range'));
       return;
     }
+    setErrDay(null);
 
-    if (data) {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        envelopeId,
-        description,
-        amount,
-        paymentDay,
-      });
-    } else {
-      await createMutation.mutateAsync({
-        envelopeId,
-        description,
-        amount,
-        paymentDay,
-      });
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({
+          id: data.id,
+          envelopeId,
+          description,
+          amount,
+          paymentDay,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          envelopeId,
+          description,
+          amount,
+          paymentDay,
+        });
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -98,8 +117,12 @@ export const FixedExpenseFormModal: React.FC<FixedExpenseFormModalProps> = ({
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }

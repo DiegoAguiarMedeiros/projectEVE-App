@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as apiService from 'src/api/services';
+import { useIncomeStore } from 'src/store/useIncomeStore';
+import { useSelectedMonthYearStore } from 'src/store/useSelectedMonthYearStore';
 import { LoginPayload, RegisterPayload } from 'src/types';
 
 export function useLogin(onSuccess?: () => void) {
@@ -7,6 +9,9 @@ export function useLogin(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (payload: LoginPayload) => apiService.login(payload),
     onSuccess: async () => {
+      queryClient.clear();
+      useIncomeStore.getState().setIncome(0);
+      useSelectedMonthYearStore.getState().reset();
       await queryClient.resetQueries({ queryKey: ['user'] });
       onSuccess?.();
     },
@@ -24,8 +29,11 @@ export function useLogout(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => apiService.logout(),
-    onSuccess: () => {
+    onSettled: () => {
+      queryClient.setQueryData(['user'], null);
       queryClient.clear();
+      useIncomeStore.getState().setIncome(0);
+      useSelectedMonthYearStore.getState().reset();
       onSuccess?.();
     },
   });

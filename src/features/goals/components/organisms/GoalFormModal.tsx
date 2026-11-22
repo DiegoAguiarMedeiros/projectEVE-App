@@ -73,12 +73,12 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
       valid = false;
     } else setErrDesc(null);
 
-    if (!amountTotal.trim() || Number.isNaN(Number(amountTotal))) {
+    if (!amountTotal.trim() || Number.isNaN(Number(amountTotal)) || Number(amountTotal) <= 0) {
       setErrTotal(t('settings.goals.validation.amount_required'));
       valid = false;
     } else setErrTotal(null);
 
-    if (!amount.trim() || Number.isNaN(Number(amount))) {
+    if (!amount.trim() || Number.isNaN(Number(amount)) || Number(amount) < 0) {
       setErrCurrent(t('settings.goals.validation.amount_required'));
       valid = false;
     } else setErrCurrent(null);
@@ -103,12 +103,16 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
       monthYear,
     };
 
-    if (data) {
-      await updateMutation.mutateAsync({ id: data.id, ...payload });
-    } else {
-      await createMutation.mutateAsync(payload);
+    try {
+      if (data) {
+        await updateMutation.mutateAsync({ id: data.id, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
     }
-    onClose();
   };
 
   return (
@@ -122,8 +126,12 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
       onDelete={
         data
           ? async () => {
-              await deleteMutation.mutateAsync(data.id);
-              onClose();
+              try {
+                await deleteMutation.mutateAsync(data.id);
+                onClose();
+              } catch {
+                // handled by mutation onError toast
+              }
             }
           : undefined
       }

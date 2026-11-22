@@ -28,6 +28,10 @@ export function useCreateFixedExpenses() {
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -42,6 +46,10 @@ export function useUpdateFixedExpenses() {
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -55,6 +63,10 @@ export function useDeleteFixedExpenses() {
       showToast(t('notifications.fixed_expenses.deleted'), 'success');
       queryClient.invalidateQueries({ queryKey: ['fixed-expenses'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -77,6 +89,10 @@ export function useCreateCreditCards() {
       showToast(t('notifications.credit_cards.created'), 'success');
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -90,6 +106,10 @@ export function useUpdateCreditCards() {
       showToast(t('notifications.credit_cards.updated'), 'success');
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -102,6 +122,10 @@ export function useDeleteCreditCards() {
     onSuccess: () => {
       showToast(t('notifications.credit_cards.deleted'), 'success');
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }

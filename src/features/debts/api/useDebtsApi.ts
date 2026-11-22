@@ -37,9 +37,10 @@ export function useCreateDebts() {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
       queryClient.invalidateQueries({ queryKey: ['debts-summary'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      }, 1000);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -55,9 +56,10 @@ export function useUpdateDebts() {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
       queryClient.invalidateQueries({ queryKey: ['debts-summary'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      }, 1000);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -73,6 +75,10 @@ export function useDeleteDebts() {
       queryClient.invalidateQueries({ queryKey: ['debts'] });
       queryClient.invalidateQueries({ queryKey: ['debts-summary'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }

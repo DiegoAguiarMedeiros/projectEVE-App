@@ -35,9 +35,10 @@ export function useCreateIncomes() {
       queryClient.invalidateQueries({ queryKey: ['incomes'] });
       queryClient.invalidateQueries({ queryKey: ['incomes-total'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      }, 1000);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -53,9 +54,10 @@ export function useUpdateIncomes() {
       queryClient.invalidateQueries({ queryKey: ['incomes'] });
       queryClient.invalidateQueries({ queryKey: ['incomes-total'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['envelopes'] });
-      }, 1000);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -71,6 +73,10 @@ export function useDeleteIncomes() {
       queryClient.invalidateQueries({ queryKey: ['incomes'] });
       queryClient.invalidateQueries({ queryKey: ['incomes-total'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }
@@ -160,6 +166,10 @@ export function useUpdateProcessedIncomes() {
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
+    },
   });
 }
 
@@ -175,6 +185,10 @@ export function useDeleteProcessedIncomes() {
       queryClient.invalidateQueries({ queryKey: ['processed-incomes-total'] });
       queryClient.invalidateQueries({ queryKey: ['envelopes'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'errors.unexpected';
+      showToast(t(msg), 'error');
     },
   });
 }

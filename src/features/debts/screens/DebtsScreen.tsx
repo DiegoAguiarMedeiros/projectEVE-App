@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
+  FlatList,
   Modal,
   Platform,
   ScrollView,
@@ -197,8 +198,14 @@ export const DebtsScreen: React.FC = () => {
               </View>
             </View>
 
-            <ScrollView style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-              {Array.from({ length: totalInst }, (_, idx) => {
+            <FlatList
+              data={Array.from({ length: Math.max(0, totalInst) }, (_, i) => i)}
+              keyExtractor={(idx) => String(idx)}
+              style={{ paddingHorizontal: 16, marginBottom: 16 }}
+              initialNumToRender={15}
+              maxToRenderPerBatch={20}
+              windowSize={7}
+              renderItem={({ item: idx }) => {
                 const st = getStatus(idx);
                 const chipColor =
                   st === 'paid'
@@ -215,7 +222,6 @@ export const DebtsScreen: React.FC = () => {
 
                 return (
                   <View
-                    key={idx}
                     style={[
                       styles.instRow,
                       { borderBottomColor: colors.divider },
@@ -267,8 +273,8 @@ export const DebtsScreen: React.FC = () => {
                     </View>
                   </View>
                 );
-              })}
-            </ScrollView>
+              }}
+            />
           </View>
         </View>
       </Modal>

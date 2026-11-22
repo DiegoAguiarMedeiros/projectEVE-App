@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { palette } from 'src/theme';
 
@@ -18,6 +18,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const showToast = useCallback(
     (message: string, variant: ToastVariant = 'info') => {
+      opacity.stopAnimation();
       setToast({ message, variant });
       Animated.sequence([
         Animated.timing(opacity, {
@@ -31,12 +32,16 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           duration: 250,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        setToast(null);
+      ]).start(({ finished }) => {
+        if (finished) {
+          setToast(null);
+        }
       });
     },
     [opacity]
   );
+
+  const contextValue = useMemo(() => ({ showToast }), [showToast]);
 
   const getBgColor = (variant: ToastVariant) => {
     switch (variant) {
@@ -52,7 +57,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={contextValue}>
       {children}
       {toast && (
         <Animated.View
