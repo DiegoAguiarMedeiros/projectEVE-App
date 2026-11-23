@@ -439,6 +439,8 @@ export const EnvelopesScreen: React.FC<{ navigation: any }> = ({
         }}
         envelopeId={activeEnvelopeId}
         envelopeBalance={activeEnvelope?.amount}
+        referenceYear={year}
+        referenceMonth={month}
         data={editingTx}
       />
     </View>

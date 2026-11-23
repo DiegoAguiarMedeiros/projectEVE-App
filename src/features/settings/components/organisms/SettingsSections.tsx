@@ -442,7 +442,12 @@ export const FixedExpensesSection: React.FC<{
                       </Text>
                     </View>
                     <Text style={{ fontSize: 12, color: colors.text.secondary }}>
-                      {t('settings.fixed_expense.table.headers.payment_day')}:{' '}
+                      {item.creditCardName ??
+                        t(
+                          item.paymentMethod ??
+                            'envelope.transaction.payment_method.Cash'
+                        )}{' '}
+                      • {t('settings.fixed_expense.table.headers.payment_day')}:{' '}
                       {item.paymentDay}
                     </Text>
                   </>

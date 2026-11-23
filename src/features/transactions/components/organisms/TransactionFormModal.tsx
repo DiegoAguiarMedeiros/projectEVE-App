@@ -28,6 +28,8 @@ export interface TransactionFormModalProps {
   onClose: () => void;
   envelopeId: string;
   envelopeBalance?: number;
+  referenceYear?: number;
+  referenceMonth?: number;
   data?: Transactions | null;
 }
 
@@ -36,6 +38,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   onClose,
   envelopeId,
   envelopeBalance,
+  referenceYear,
+  referenceMonth,
   data,
 }) => {
   const { t } = useTranslation();
@@ -133,6 +137,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           paymentMethod,
           creditCardId: isCredit ? creditCardId || undefined : undefined,
           date: isoDate,
+          referenceYear: data.referenceYear ?? referenceYear,
+          referenceMonth: data.referenceMonth ?? referenceMonth,
           type: data.type ?? 'Debit',
           isTranslatable: data.isTranslatable,
         });
@@ -145,6 +151,8 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
           paymentMethod,
           creditCardId: isCredit ? creditCardId || undefined : undefined,
           date: isoDate,
+          referenceYear,
+          referenceMonth,
           type: 'Debit',
         });
       }

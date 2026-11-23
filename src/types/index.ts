@@ -101,6 +101,8 @@ export interface Transactions {
   amount: string;
   paymentMethod: PaymentMethod;
   date: string | null;
+  referenceYear?: number;
+  referenceMonth?: number;
   type: TransactionsType;
   status: TransactionsStatus;
   isTranslatable?: boolean;
@@ -202,9 +204,12 @@ export interface FixedExpenses {
   description: string;
   amount: string;
   paymentDay: string;
+  paymentMethod?: PaymentMethod;
+  creditCardId?: string;
+  creditCardName?: string;
 }
 
-export interface FixedExpensesPost extends Omit<FixedExpenses, "id"> {}
+export interface FixedExpensesPost extends Omit<FixedExpenses, "id" | "creditCardName"> {}
 
 export type Flags =
   | "Visa"

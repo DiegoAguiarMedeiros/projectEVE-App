@@ -682,6 +682,8 @@ export const DashboardScreen: React.FC = () => {
           envelopeBalance={
             envelopes.find((e) => e.id === editingTx.envelopeId)?.amount
           }
+          referenceYear={editingTx.referenceYear ?? year}
+          referenceMonth={editingTx.referenceMonth ?? month}
           data={editingTx}
         />
       )}
