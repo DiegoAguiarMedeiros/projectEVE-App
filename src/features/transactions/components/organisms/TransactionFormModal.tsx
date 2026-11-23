@@ -27,6 +27,7 @@ export interface TransactionFormModalProps {
   visible: boolean;
   onClose: () => void;
   envelopeId: string;
+  envelopeBalance?: number;
   data?: Transactions | null;
 }
 
@@ -34,6 +35,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   visible,
   onClose,
   envelopeId,
+  envelopeBalance,
   data,
 }) => {
   const { t } = useTranslation();
@@ -166,6 +168,19 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   const isReallocation =
     data?.paymentMethod === 'envelope.transaction.payment_method.Reallocation';
 
+  const numericAmount = Number(amount);
+  const isDebit = !data || data.type === 'Debit';
+  const wasCompleted = data?.status === 'transaction.status.completed';
+  const neededAmount = wasCompleted
+    ? numericAmount - Number(data.amount)
+    : numericAmount;
+  const exceedsBalance =
+    isDebit &&
+    envelopeBalance !== undefined &&
+    !Number.isNaN(numericAmount) &&
+    neededAmount > 0 &&
+    neededAmount > envelopeBalance;
+
   return (
     <BaseFormModal
       visible={visible}
@@ -193,6 +208,30 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
         error={!!errAmount}
         helperText={errAmount}
       />
+      {exceedsBalance && (
+        <View
+          testID="transaction-exceeds-balance-warning"
+          style={[
+            styles.warningBanner,
+            {
+              backgroundColor: colors.warning.lighter,
+              borderColor: colors.warning.main,
+            },
+          ]}
+        >
+          <MaterialIcons
+            name="warning-amber"
+            size={18}
+            color={colors.warning.dark}
+            style={{ marginTop: 1 }}
+          />
+          <Text
+            style={[styles.warningBannerText, { color: colors.warning.dark }]}
+          >
+            {t('envelope.validation.exceeds_balance_warning')}
+          </Text>
+        </View>
+      )}
       <DatePickerField
         label={t('envelope.transaction.date')}
         value={selectedDate}
@@ -319,6 +358,22 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 14,
+  },
+  warningBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
+  },
   fieldTitle: {
     fontSize: 13,
     fontWeight: '600',

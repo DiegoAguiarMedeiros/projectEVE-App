@@ -177,7 +177,8 @@
       "amount_positive": "O valor deve ser maior que zero",
       "insufficient_funds": "Saldo insuficiente",
       "select_target": "Selecione um envelope de destino",
-      "enter_amount": "Informe o valor"
+      "enter_amount": "Informe o valor",
+      "exceeds_balance_warning": "O valor ultrapassa o saldo disponível do envelope. Você pode adicionar a conta, mas só poderá marcá-la como paga quando houver saldo suficiente."
     }
   },
   "transaction": {

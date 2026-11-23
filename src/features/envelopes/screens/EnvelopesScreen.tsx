@@ -438,6 +438,7 @@ export const EnvelopesScreen: React.FC<{ navigation: any }> = ({
           setEditingTx(null);
         }}
         envelopeId={activeEnvelopeId}
+        envelopeBalance={activeEnvelope?.amount}
         data={editingTx}
       />
     </View>

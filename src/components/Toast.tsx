@@ -4,16 +4,68 @@ import { palette } from 'src/theme';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
 
+interface ToastState {
+  message: string;
+  variant: ToastVariant;
+}
+
 interface ToastContextType {
   showToast: (message: string, variant?: ToastVariant) => void;
+  toast: ToastState | null;
+  opacity: Animated.Value;
 }
+
+const defaultOpacity = new Animated.Value(0);
 
 const ToastContext = createContext<ToastContextType>({
   showToast: () => {},
+  toast: null,
+  opacity: defaultOpacity,
 });
 
+const getToastBgColor = (variant: ToastVariant) => {
+  switch (variant) {
+    case 'success':
+      return palette.success.main;
+    case 'error':
+      return palette.error.main;
+    case 'warning':
+      return palette.warning.main;
+    default:
+      return palette.primary.main;
+  }
+};
+
+export const ToastOverlay: React.FC = () => {
+  const { toast, opacity } = useContext(ToastContext);
+
+  if (!toast) return null;
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        styles.toastContainer,
+        {
+          opacity,
+          backgroundColor: getToastBgColor(toast.variant),
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.toastText,
+          toast.variant === 'warning' && { color: palette.grey[800] },
+        ]}
+      >
+        {toast.message}
+      </Text>
+    </Animated.View>
+  );
+};
+
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const [opacity] = useState(new Animated.Value(0));
 
   const showToast = useCallback(
@@ -41,45 +93,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     [opacity]
   );
 
-  const contextValue = useMemo(() => ({ showToast }), [showToast]);
-
-  const getBgColor = (variant: ToastVariant) => {
-    switch (variant) {
-      case 'success':
-        return palette.success.main;
-      case 'error':
-        return palette.error.main;
-      case 'warning':
-        return palette.warning.main;
-      default:
-        return palette.primary.main;
-    }
-  };
+  const contextValue = useMemo(
+    () => ({ showToast, toast, opacity }),
+    [showToast, toast, opacity]
+  );
 
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      {toast && (
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.toastContainer,
-            {
-              opacity,
-              backgroundColor: getBgColor(toast.variant),
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.toastText,
-              toast.variant === 'warning' && { color: palette.grey[800] },
-            ]}
-          >
-            {toast.message}
-          </Text>
-        </Animated.View>
-      )}
+      <ToastOverlay />
     </ToastContext.Provider>
   );
 };

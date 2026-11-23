@@ -679,6 +679,9 @@ export const DashboardScreen: React.FC = () => {
           visible={!!editingTx}
           onClose={() => setEditingTx(null)}
           envelopeId={editingTx.envelopeId}
+          envelopeBalance={
+            envelopes.find((e) => e.id === editingTx.envelopeId)?.amount
+          }
           data={editingTx}
         />
       )}

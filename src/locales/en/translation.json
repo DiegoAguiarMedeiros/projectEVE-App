@@ -174,7 +174,8 @@
       "amount_positive": "Amount must be greater than zero",
       "insufficient_funds": "Insufficient funds",
       "select_target": "Select a target envelope",
-      "enter_amount": "Enter amount"
+      "enter_amount": "Enter amount",
+      "exceeds_balance_warning": "Amount exceeds the available envelope balance. You can add the bill, but it can only be marked as paid once there is sufficient balance."
     }
   },
   "transaction": {

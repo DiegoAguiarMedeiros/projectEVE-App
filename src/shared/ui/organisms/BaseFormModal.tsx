@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from 'src/theme';
 import { AppButton } from '../atoms/AppButton';
 import { KeyboardAvoidingContainer } from '../atoms/KeyboardAvoidingContainer';
+import { ToastOverlay } from 'src/components/Toast';
 
 export interface BaseFormModalProps {
   visible: boolean;
@@ -134,6 +135,7 @@ export const BaseFormModal: React.FC<BaseFormModalProps> = ({
           </View>
         )}
       </KeyboardAvoidingContainer>
+      <ToastOverlay />
     </Modal>
   );
 };

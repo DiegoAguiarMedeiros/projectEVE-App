@@ -176,7 +176,8 @@
       "amount_positive": "El monto debe ser mayor que cero",
       "insufficient_funds": "Saldo insuficiente",
       "select_target": "Seleccione un sobre de destino",
-      "enter_amount": "Ingrese el monto"
+      "enter_amount": "Ingrese el monto",
+      "exceeds_balance_warning": "El monto supera el saldo disponible del sobre. Puedes agregar la cuenta, pero solo podrás marcarla como pagada cuando haya saldo suficiente."
     }
   },
   "transaction": {
