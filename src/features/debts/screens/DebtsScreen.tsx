@@ -88,9 +88,16 @@ export const DebtsScreen: React.FC = () => {
     const paidVal = amount * effPaid;
     const remVal = totalVal - paidVal;
 
+    const now = new Date();
+    const offsetFromNow =
+      (year - now.getFullYear()) * 12 + (month - 1 - now.getMonth());
+    const selectedIndex = realPaid + offsetFromNow;
+
     const getStatus = (index: number) => {
-      if (index < effPaid - 1) return 'paid';
-      if (index === effPaid - 1) return 'current';
+      if (effPaid >= totalInst) return 'paid';
+      if (selectedIndex < 0) return 'future';
+      if (index < effPaid) return 'paid';
+      if (index === effPaid) return 'current';
       return 'future';
     };
 

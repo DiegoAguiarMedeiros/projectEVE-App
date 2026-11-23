@@ -22,8 +22,10 @@ const queryClient = new QueryClient({
 });
 
 setOnUnauthorizedCallback(() => {
+  queryClient.removeQueries({
+    predicate: (query) => query.queryKey[0] !== 'user',
+  });
   queryClient.setQueryData(['user'], null);
-  queryClient.clear();
   useIncomeStore.getState().setIncome(0);
   useSelectedMonthYearStore.getState().reset();
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from 'src/theme';
 import { useSelectedMonthYearStore } from 'src/store/useSelectedMonthYearStore';
 import {
+  useListEnvelopes,
   useListEnvelopesWithAmount,
   useTransferBalance,
 } from 'src/features/envelopes/api/useEnvelopesApi';
@@ -24,22 +25,49 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { month, year, lastSlideIndex } = useSelectedMonthYearStore();
-  const { data: envelopes = [] } = useListEnvelopesWithAmount(year, month);
+  const { data: monthlyEnvelopes = [] } = useListEnvelopesWithAmount(year, month);
+  const { data: allEnvelopes = [] } = useListEnvelopes();
   const transferMutation = useTransferBalance();
 
-  const [sourceIndex, setSourceIndex] = useState(
-    route?.params?.initialIndex ?? lastSlideIndex ?? 0
+  const mergedEnvelopes = useMemo(() => {
+    const monthlyById = new Map(monthlyEnvelopes.map((e) => [e.id, e]));
+    const base = allEnvelopes.length > 0 ? allEnvelopes : monthlyEnvelopes;
+    return base.map((env) => {
+      const monthly = monthlyById.get(env.id);
+      return {
+        ...env,
+        amount: monthly?.amount ?? 0,
+        used: monthly?.used ?? 0,
+      };
+    });
+  }, [allEnvelopes, monthlyEnvelopes]);
+
+  // Only envelopes with balance > 0 can be selected as source
+  const sourceEnvelopes = useMemo(
+    () => mergedEnvelopes.filter((e) => Number(e.amount ?? 0) > 0),
+    [mergedEnvelopes]
   );
+
+  const initialSlideIndex = route?.params?.initialIndex ?? lastSlideIndex ?? 0;
+  const initialEnvId = monthlyEnvelopes[initialSlideIndex]?.id;
+
+  const [sourceIndex, setSourceIndex] = useState(() => {
+    if (initialEnvId) {
+      const idx = sourceEnvelopes.findIndex((e) => e.id === initialEnvId);
+      if (idx >= 0) return idx;
+    }
+    return 0;
+  });
   const [destIndex, setDestIndex] = useState(0);
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const safeSourceIndex =
-    envelopes.length > 0
-      ? Math.min(Math.max(0, sourceIndex), envelopes.length - 1)
+    sourceEnvelopes.length > 0
+      ? Math.min(Math.max(0, sourceIndex), sourceEnvelopes.length - 1)
       : 0;
-  const sourceEnvelope = envelopes[safeSourceIndex] || envelopes[0];
-  const destinationEnvelopes = envelopes.filter(
+  const sourceEnvelope = sourceEnvelopes[safeSourceIndex];
+  const destinationEnvelopes = mergedEnvelopes.filter(
     (e) => e.id !== sourceEnvelope?.id
   );
   const safeDestIndex =
@@ -112,12 +140,12 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
         </Text>
         <View style={styles.selectorRow}>
           <TouchableOpacity
-            disabled={envelopes.length <= 1}
+            disabled={sourceEnvelopes.length <= 1}
             onPress={() => {
-              if (envelopes.length <= 1) return;
+              if (sourceEnvelopes.length <= 1) return;
               setSourceIndex((prev: number) => {
-                const current = Math.min(Math.max(0, prev), envelopes.length - 1);
-                return current === 0 ? envelopes.length - 1 : current - 1;
+                const current = Math.min(Math.max(0, prev), sourceEnvelopes.length - 1);
+                return current === 0 ? sourceEnvelopes.length - 1 : current - 1;
               });
             }}
             style={styles.arrowCircle}
@@ -138,12 +166,12 @@ export const ReallocationScreen: React.FC<{ navigation: any; route: any }> = ({
             )}
           </View>
           <TouchableOpacity
-            disabled={envelopes.length <= 1}
+            disabled={sourceEnvelopes.length <= 1}
             onPress={() => {
-              if (envelopes.length <= 1) return;
+              if (sourceEnvelopes.length <= 1) return;
               setSourceIndex((prev: number) => {
-                const current = Math.min(Math.max(0, prev), envelopes.length - 1);
-                return current === envelopes.length - 1 ? 0 : current + 1;
+                const current = Math.min(Math.max(0, prev), sourceEnvelopes.length - 1);
+                return current === sourceEnvelopes.length - 1 ? 0 : current + 1;
               });
             }}
             style={styles.arrowCircle}

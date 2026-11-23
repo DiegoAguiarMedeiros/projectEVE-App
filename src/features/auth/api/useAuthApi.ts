@@ -9,10 +9,16 @@ export function useLogin(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (payload: LoginPayload) => apiService.login(payload),
     onSuccess: async () => {
-      queryClient.clear();
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== 'user',
+      });
       useIncomeStore.getState().setIncome(0);
       useSelectedMonthYearStore.getState().reset();
-      await queryClient.resetQueries({ queryKey: ['user'] });
+      await queryClient.fetchQuery({
+        queryKey: ['user'],
+        queryFn: () => apiService.getUser().then((res) => res.data),
+        staleTime: 0,
+      });
       onSuccess?.();
     },
   });
@@ -30,8 +36,10 @@ export function useLogout(onSuccess?: () => void) {
   return useMutation({
     mutationFn: () => apiService.logout(),
     onSettled: () => {
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== 'user',
+      });
       queryClient.setQueryData(['user'], null);
-      queryClient.clear();
       useIncomeStore.getState().setIncome(0);
       useSelectedMonthYearStore.getState().reset();
       onSuccess?.();
