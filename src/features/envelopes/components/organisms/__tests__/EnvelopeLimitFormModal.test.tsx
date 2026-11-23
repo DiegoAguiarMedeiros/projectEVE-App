@@ -6,13 +6,27 @@ import { useIncomeStore } from 'src/store/useIncomeStore';
 import { Envelopes } from 'src/types';
 
 const mockMutateAsync = jest.fn();
+const mockCreateAsync = jest.fn();
+const mockDeleteAsync = jest.fn();
 
 describe('EnvelopeLimitFormModal (Organism)', () => {
   beforeEach(() => {
     mockMutateAsync.mockReset();
     mockMutateAsync.mockResolvedValue(undefined);
+    mockCreateAsync.mockReset();
+    mockCreateAsync.mockResolvedValue(undefined);
+    mockDeleteAsync.mockReset();
+    mockDeleteAsync.mockResolvedValue(undefined);
+    jest.spyOn(envelopesApi, 'useCreateEnvelopes').mockReturnValue({
+      mutateAsync: mockCreateAsync,
+      isPending: false,
+    } as any);
     jest.spyOn(envelopesApi, 'useUpdateEnvelopes').mockReturnValue({
       mutateAsync: mockMutateAsync,
+      isPending: false,
+    } as any);
+    jest.spyOn(envelopesApi, 'useDeleteEnvelopes').mockReturnValue({
+      mutateAsync: mockDeleteAsync,
       isPending: false,
     } as any);
     useIncomeStore.setState({ income: 3842.5 });
@@ -80,5 +94,60 @@ describe('EnvelopeLimitFormModal (Organism)', () => {
       color: '#1877F2',
       percentage: 0,
     });
+  });
+
+  it('creates a custom envelope when data is null', async () => {
+    const onClose = jest.fn();
+    const { getByTestId } = render(
+      <EnvelopeLimitFormModal
+        visible
+        onClose={onClose}
+        data={null}
+        allEnvelopes={allEnvelopes}
+      />
+    );
+
+    fireEvent.changeText(getByTestId('envelope-name-input'), 'Viagem');
+    fireEvent.press(getByTestId('modal-submit-button'));
+    await Promise.resolve();
+
+    expect(mockCreateAsync).toHaveBeenCalledWith({
+      name: 'Viagem',
+      color: '#1877F2',
+      percentage: 0,
+      order: 3,
+    });
+  });
+
+  it('shows delete button for custom envelopes and hides it for debts and goals', () => {
+    const { queryByTestId, rerender } = render(
+      <EnvelopeLimitFormModal
+        visible
+        onClose={jest.fn()}
+        data={envelope}
+        allEnvelopes={allEnvelopes}
+      />
+    );
+    expect(queryByTestId('modal-delete-button')).toBeTruthy();
+
+    rerender(
+      <EnvelopeLimitFormModal
+        visible
+        onClose={jest.fn()}
+        data={{ ...envelope, name: 'debts' }}
+        allEnvelopes={allEnvelopes}
+      />
+    );
+    expect(queryByTestId('modal-delete-button')).toBeNull();
+
+    rerender(
+      <EnvelopeLimitFormModal
+        visible
+        onClose={jest.fn()}
+        data={{ ...envelope, name: 'goals' }}
+        allEnvelopes={allEnvelopes}
+      />
+    );
+    expect(queryByTestId('modal-delete-button')).toBeNull();
   });
 });

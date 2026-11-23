@@ -4,8 +4,12 @@ import Slider from '@react-native-community/slider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from 'src/theme';
-import { BaseFormModal, CurrencyInput } from 'src/shared/ui';
-import { useUpdateEnvelopes } from 'src/features/envelopes/api/useEnvelopesApi';
+import { BaseFormModal, CurrencyInput, FormInput } from 'src/shared/ui';
+import {
+  useCreateEnvelopes,
+  useDeleteEnvelopes,
+  useUpdateEnvelopes,
+} from 'src/features/envelopes/api/useEnvelopesApi';
 import { useIncomeStore } from 'src/store/useIncomeStore';
 import { Envelopes } from 'src/types';
 import { fCurrency } from 'src/utils/format';
@@ -39,13 +43,19 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const income = useIncomeStore((s) => s.income);
+  const createMutation = useCreateEnvelopes();
   const updateMutation = useUpdateEnvelopes();
+  const deleteMutation = useDeleteEnvelopes();
 
+  const [name, setName] = useState('');
+  const [errName, setErrName] = useState<string | null>(null);
   const [color, setColor] = useState('#1877F2');
   const [percentage, setPercentage] = useState(0);
   const [valueInput, setValueInput] = useState('');
 
+  const isEditing = Boolean(data?.id);
   const isDebts = data?.name === 'debts';
+  const isProtected = data?.name === 'debts' || data?.name === 'goals';
 
   const usedByOthers = allEnvelopes
     .filter((e) => e.id !== data?.id)
@@ -56,15 +66,24 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
   const isValueAboveMax = !isDebts && Number(valueInput || 0) > maxValue;
 
   useEffect(() => {
-    if (visible && data) {
-      setColor(data.color || '#1877F2');
-      setPercentage(data.percentage || 0);
-      const currentIncome = useIncomeStore.getState().income;
-      if (currentIncome > 0) {
-        setValueInput((((data.percentage || 0) / 100) * currentIncome).toFixed(2));
+    if (visible) {
+      if (data) {
+        setName(data.name);
+        setColor(data.color || '#1877F2');
+        setPercentage(data.percentage || 0);
+        const currentIncome = useIncomeStore.getState().income;
+        if (currentIncome > 0) {
+          setValueInput((((data.percentage || 0) / 100) * currentIncome).toFixed(2));
+        } else {
+          setValueInput('');
+        }
       } else {
+        setName('');
+        setColor('#1877F2');
+        setPercentage(0);
         setValueInput('');
       }
+      setErrName(null);
     }
   }, [visible, data]);
 
@@ -93,14 +112,42 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!data || isValueAboveMax) return;
+    if (isValueAboveMax) return;
+    if (!isEditing) {
+      const trimmedName = name.trim();
+      if (!trimmedName || trimmedName.length < 2) {
+        setErrName(t('settings.envelope.validation.name_required'));
+        return;
+      }
+      setErrName(null);
+    }
+
     try {
-      await updateMutation.mutateAsync({
-        id: data.id,
-        name: data.name,
-        color,
-        percentage,
-      });
+      if (isEditing && data) {
+        await updateMutation.mutateAsync({
+          id: data.id,
+          name: data.name,
+          color,
+          percentage,
+        });
+      } else {
+        await createMutation.mutateAsync({
+          name: name.trim(),
+          color,
+          percentage,
+          order: allEnvelopes.length + 1,
+        });
+      }
+      onClose();
+    } catch {
+      // handled by mutation onError toast
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!data?.id || isProtected) return;
+    try {
+      await deleteMutation.mutateAsync(data.id);
       onClose();
     } catch {
       // handled by mutation onError toast
@@ -116,13 +163,27 @@ export const EnvelopeLimitFormModal: React.FC<EnvelopeLimitFormModalProps> = ({
       onClose={onClose}
       title={data ? t(data.name) : t('settings.envelope.title')}
       onSubmit={handleSubmit}
-      submitLabel={t('settings.envelope.save')}
-      loading={updateMutation.isPending}
+      submitLabel={isEditing ? t('settings.envelope.save') : t('common.add')}
+      loading={createMutation.isPending || updateMutation.isPending}
+      onDelete={isEditing && !isProtected ? handleDelete : undefined}
+      deleteLoading={deleteMutation.isPending}
       disabled={
         isValueAboveMax ||
         (!isDebts && Number((percentage + usedByOthers).toFixed(2)) > 100)
       }
     >
+      {!isEditing && (
+        <FormInput
+          testID="envelope-name-input"
+          label={t('settings.envelope.name')}
+          value={name}
+          onChangeText={(val) => {
+            setName(val);
+            if (errName) setErrName(null);
+          }}
+          error={errName}
+        />
+      )}
       <Text style={[styles.fieldTitle, { color: colors.text.secondary }]}>
         {t('settings.envelope.color')}
       </Text>

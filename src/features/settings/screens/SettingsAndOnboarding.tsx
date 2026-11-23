@@ -124,7 +124,12 @@ export const CompleteRegistrationScreen: React.FC = () => {
           />
         );
       case 5:
-        return <EnvelopesLimitsSection envelopes={envelopes} />;
+        return (
+          <EnvelopesLimitsSection
+            envelopes={envelopes}
+            addTrigger={addTrigger}
+          />
+        );
       default:
         return null;
     }
@@ -174,11 +179,9 @@ export const CompleteRegistrationScreen: React.FC = () => {
         <ScrollView contentContainerStyle={styles.content}>
           {renderStepContent()}
         </ScrollView>
-        {activeStep !== 5 && (
-          <FloatingAddButton
-            onPress={() => setAddTrigger((prev) => prev + 1)}
-          />
-        )}
+        <FloatingAddButton
+          onPress={() => setAddTrigger((prev) => prev + 1)}
+        />
       </View>
 
       <View
@@ -258,7 +261,12 @@ export const SettingsScreen: React.FC = () => {
           />
         );
       case 1:
-        return <EnvelopesLimitsSection envelopes={envelopes} />;
+        return (
+          <EnvelopesLimitsSection
+            envelopes={envelopes}
+            addTrigger={addTrigger}
+          />
+        );
       case 2:
         return (
           <GoalsSettingsSection
@@ -307,11 +315,9 @@ export const SettingsScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {renderContent()}
       </ScrollView>
-      {activeTab !== 1 && (
-        <FloatingAddButton
-          onPress={() => setAddTrigger((prev) => prev + 1)}
-        />
-      )}
+      <FloatingAddButton
+        onPress={() => setAddTrigger((prev) => prev + 1)}
+      />
     </View>
   );
 };

@@ -74,7 +74,8 @@
       "name_cannot_be_changed": "The envelope name cannot be changed",
       "exceeds_percentage": "The total envelope percentage would exceed 100%",
       "not_distributed": "Envelopes must be 100% distributed before proceeding",
-      "below_minimum_percentage": "The percentage is below the minimum required to cover the fixed expenses of this envelope"
+      "below_minimum_percentage": "The percentage is below the minimum required to cover the fixed expenses of this envelope",
+      "cannot_be_deleted": "Debts and Goals envelopes cannot be deleted"
     }
   },
   "nav": {
@@ -607,8 +608,12 @@
       "error_delete_month": "Error removing month"
     },
     "envelopes": {
+      "created": "Envelope created successfully!",
       "updated": "Envelope updated successfully!",
+      "deleted": "Envelope deleted successfully!",
+      "error_create": "Error creating envelope",
       "error_update": "Error updating envelope",
+      "error_delete": "Error deleting envelope",
       "transfer_success": "Transfer completed successfully!",
       "error_transfer": "Error performing transfer"
     },

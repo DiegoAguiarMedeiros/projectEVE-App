@@ -75,7 +75,8 @@
       "name_cannot_be_changed": "O nome do envelope não pode ser alterado",
       "exceeds_percentage": "A soma dos percentuais dos envelopes ultrapassaria 100%",
       "not_distributed": "Os envelopes precisam estar 100% distribuídos antes de prosseguir",
-      "below_minimum_percentage": "A porcentagem é menor que o mínimo necessário para cobrir as contas fixas deste envelope"
+      "below_minimum_percentage": "A porcentagem é menor que o mínimo necessário para cobrir as contas fixas deste envelope",
+      "cannot_be_deleted": "Os envelopes de Dívidas e Metas não podem ser excluídos"
     }
   },
   "nav": {
@@ -610,8 +611,12 @@
       "error_delete_month": "Erro ao remover o mês"
     },
     "envelopes": {
+      "created": "Envelope criado com sucesso!",
       "updated": "Envelope editado com sucesso!",
+      "deleted": "Envelope excluído com sucesso!",
+      "error_create": "Erro ao criar envelope",
       "error_update": "Erro ao editar envelope",
+      "error_delete": "Erro ao excluir envelope",
       "transfer_success": "Transferência realizada com sucesso!",
       "error_transfer": "Erro ao realizar transferência"
     },

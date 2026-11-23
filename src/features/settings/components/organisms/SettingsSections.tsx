@@ -124,8 +124,12 @@ export const IncomesSection: React.FC<{
 
 // ─── 2. Envelopes Limits Section ──────────────────────────────────────────────
 
-export const EnvelopesLimitsSection: React.FC<{ envelopes: Envelopes[] }> = ({
+export const EnvelopesLimitsSection: React.FC<{
+  envelopes: Envelopes[];
+  addTrigger?: number;
+}> = ({
   envelopes,
+  addTrigger,
 }) => {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -133,6 +137,11 @@ export const EnvelopesLimitsSection: React.FC<{ envelopes: Envelopes[] }> = ({
 
   const [selectedEnv, setSelectedEnv] = useState<Envelopes | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useOpenAddOnTrigger(addTrigger, () => {
+    setSelectedEnv(null);
+    setModalOpen(true);
+  });
 
   const totalAllocation = Number(
     envelopes.reduce((acc, item) => acc + item.percentage, 0).toFixed(2)

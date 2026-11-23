@@ -51,6 +51,7 @@ export interface Envelopes {
   amount?: number;
   minAmount?: number;
   used?: number;
+  order?: number;
   userId?: string;
 }
 

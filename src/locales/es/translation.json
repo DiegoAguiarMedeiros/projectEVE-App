@@ -74,7 +74,8 @@
       "name_cannot_be_changed": "El nombre del sobre no puede modificarse",
       "exceeds_percentage": "El porcentaje total de los sobres superaría el 100%",
       "not_distributed": "Los sobres deben estar distribuidos al 100% antes de continuar",
-      "below_minimum_percentage": "El porcentaje es menor que el mínimo requerido para cubrir los gastos fijos de este sobre"
+      "below_minimum_percentage": "El porcentaje es menor que el mínimo requerido para cubrir los gastos fijos de este sobre",
+      "cannot_be_deleted": "Los sobres de Deudas y Metas no se pueden eliminar"
     }
   },
   "nav": {
@@ -609,8 +610,12 @@
       "error_delete_month": "Error al eliminar el mes"
     },
     "envelopes": {
+      "created": "¡Sobre creado con éxito!",
       "updated": "¡Sobre editado con éxito!",
+      "deleted": "¡Sobre eliminado con éxito!",
+      "error_create": "Error al crear sobre",
       "error_update": "Error al editar sobre",
+      "error_delete": "Error al eliminar sobre",
       "transfer_success": "¡Transferencia realizada con éxito!",
       "error_transfer": "Error al realizar la transferencia"
     },

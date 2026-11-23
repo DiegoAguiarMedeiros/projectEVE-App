@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useToast } from 'src/components/Toast';
 import * as apiService from 'src/api/services';
-import { Envelopes } from 'src/types';
+import { Envelopes, EnvelopesPost } from 'src/types';
 
 export function useListEnvelopes() {
   return useQuery({
@@ -18,6 +18,23 @@ export function useListEnvelopesWithAmount(year: number, month: number) {
   });
 }
 
+export function useCreateEnvelopes() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { showToast } = useToast();
+  return useMutation({
+    mutationFn: (payload: EnvelopesPost) => apiService.createEnvelopes(payload),
+    onSuccess: () => {
+      showToast(t('notifications.envelopes.created'), 'success');
+      queryClient.invalidateQueries({ queryKey: ['envelopes'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'notifications.envelopes.error_create';
+      showToast(t(msg), 'error');
+    },
+  });
+}
+
 export function useUpdateEnvelopes() {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -30,6 +47,23 @@ export function useUpdateEnvelopes() {
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || 'notifications.envelopes.error_update';
+      showToast(t(msg), 'error');
+    },
+  });
+}
+
+export function useDeleteEnvelopes() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  const { showToast } = useToast();
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteEnvelopes(id),
+    onSuccess: () => {
+      showToast(t('notifications.envelopes.deleted'), 'success');
+      queryClient.invalidateQueries({ queryKey: ['envelopes'] });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'notifications.envelopes.error_delete';
       showToast(t(msg), 'error');
     },
   });
